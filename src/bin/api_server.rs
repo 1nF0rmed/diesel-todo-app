@@ -1,22 +1,16 @@
-extern crate diesel_todo_app;
 extern crate diesel;
+extern crate diesel_todo_app;
 
-use self::diesel_todo_app::*;
-use self::models::*;
-use self::diesel::prelude::*;
+use actix_web::{middleware, App, HttpServer};
+use diesel_todo_app::routes::routes;
 
-fn main() {
-  use diesel_todo_app::schema::tasks::dsl::*;
-
-  let connection = establish_connection();
-  let results = tasks.filter(completed.eq(false))
-  .limit(5)
-  .load::<Task>(&connection)
-  .expect("Error loading tasks");
-
-  println!("Displaying {} tasks", results.len());
-  for task in results {
-    println!("{}", task.title);
-  }
-  
+#[actix_web::main]
+async fn main() -> std::io::Result<()> {
+    let serv = HttpServer::new(move || {
+        App::new()
+            .wrap(middleware::Compress::default())
+            .configure(routes)
+    });
+    serv.bind("0.0.0.0:8080")?.run().await
 }
+
